@@ -107,41 +107,33 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
             
             const rowDetSet = new Set(rowDet);
+            const rowFuncSet = new Set(rowFunc);
             
-            // Проверяем, что детерминанта существующей ФЗ содержится в новой детерминанте
-            const allRowDetInNewDet = rowDet.every(attr => newDetSet.has(attr));
-            
-            if (allRowDetInNewDet) {
-                // Проверяем, что функция существующей ФЗ не содержится в новой детерминанте
-                const anyRowFuncInNewDet = rowFunc.some(attr => newDetSet.has(attr));
-                
-                if (anyRowFuncInNewDet) {
-                    errors.push('Нарушение нормальной формы: функциональная зависимость внутри детерминанты!');
+            // 1. Проверка: если новая ФЗ может быть выведена из существующей
+            if (rowDet.every(attr => newDetSet.has(attr))) {
+                if (rowFunc.some(attr => newFuncSet.has(attr))) {
+                    errors.push('Новая ФЗ выводится из существующей!');
                     determinant.classList.add('error');
                     break;
                 }
             }
-        }
-        
-        // Проверка 2: Существующие ФЗ не должны выводиться из новой
-        if (errors.length === 0) {
-            for (const row of rows) {
-                const cells = row.querySelectorAll('td');
-                const rowDet = cells[0].textContent.split(',').map(s => s.trim());
-                const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
-                
-                // Проверяем, что новая детерминанта содержит существующую
-                const allNewDetInRowDet = validationDet.strings.every(attr => rowDet.includes(attr));
-                
-                if (allNewDetInRowDet) {
-                    // Проверяем, что новая функция не содержится в существующей детерминанте
-                    const anyNewFuncInRowDet = validationFunc.strings.some(attr => rowDet.includes(attr));
-                    
-                    if (anyNewFuncInRowDet) {
-                        errors.push('Нарушение нормальной формы: существующая ФЗ выводится из новой!');
-                        determinant.classList.add('error');
-                        break;
-                    }
+            
+            // 2. Проверка: если существующая ФЗ содержится в новой детерминанте
+            if (validationDet.strings.some(attr => rowDetSet.has(attr))) {
+                if (rowFunc.some(attr => newDetSet.has(attr))) {
+                    errors.push('Функциональная зависимость внутри детерминанты!');
+                    determinant.classList.add('error');
+                    break;
+                }
+            }
+            
+            // 3. Специальная проверка для вашего случая: если есть (1,2)->3, то 1->2 недопустима
+            if (rowDet.length > validationDet.strings.length) {
+                if (validationDet.strings.every(attr => rowDetSet.has(attr)) && 
+                    validationFunc.strings.some(attr => rowDetSet.has(attr))) {
+                    errors.push('Нарушение: существующая ФЗ делает новую избыточной!');
+                    determinant.classList.add('error');
+                    break;
                 }
             }
         }
