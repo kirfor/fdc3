@@ -64,7 +64,6 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         const detStrings = validationDet.strings;
         const funcStrings = validationFunc.strings;
         
-        // Проверка тривиальной зависимости между детерминантой и функцией
         for (const attr of funcStrings) {
             if (detStrings.includes(attr)) {
                 errors.push('Тривиальная функциональная зависимость!');
@@ -85,16 +84,18 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             const rowDet = cells[0].textContent.split(',').map(s => s.trim());
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
             
-            // Проверяем, что все атрибуты существующей детерминанты содержатся в новой детерминанте
+            // Проверяем, что детерминанта существующей ФЗ полностью содержится в новой детерминанте
             const allDetInNewDet = rowDet.every(attr => detSet.has(attr));
             
-            // Проверяем, что хотя бы один атрибут существующей функции содержится в новой детерминанте
-            const anyFuncInNewDet = rowFunc.some(attr => detSet.has(attr));
-            
-            if (allDetInNewDet && anyFuncInNewDet) {
-                errors.push('Функциональная зависимость внутри детерминанты!');
-                determinant.classList.add('error');
-                break;
+            if (allDetInNewDet) {
+                // Проверяем, что хотя бы один атрибут функции содержится в детерминанте
+                const anyFuncInNewDet = rowFunc.some(attr => detSet.has(attr));
+                
+                if (anyFuncInNewDet) {
+                    errors.push('Функциональная зависимость внутри детерминанты!');
+                    determinant.classList.add('error');
+                    break;
+                }
             }
         }
     }
