@@ -99,7 +99,6 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         const newDetSet = new Set(validationDet.strings);
         const newFuncSet = new Set(validationFunc.strings);
         
-        // Проверка 1: Новая ФЗ не должна выводиться из существующих
         const rows = resultsBody.querySelectorAll('tr');
         for (const row of rows) {
             const cells = row.querySelectorAll('td');
@@ -121,17 +120,17 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             // 2. Проверка: если существующая ФЗ содержится в новой детерминанте
             if (validationDet.strings.some(attr => rowDetSet.has(attr))) {
                 if (rowFunc.some(attr => newDetSet.has(attr))) {
-                    errors.push('Функциональная зависимость внутри детерминанты!');
+                    errors.push('Существующая ФЗ попадает внутрь детерминанты добавляемой ФЗ!');
                     determinant.classList.add('error');
                     break;
                 }
             }
             
-            // 3. Специальная проверка для вашего случая
+            // 3. Специальная проверка: если добавляемая ФЗ попадает внутрь существующей детерминанты
             if (rowDet.length > validationDet.strings.length) {
                 if (validationDet.strings.every(attr => rowDetSet.has(attr)) && 
                     validationFunc.strings.some(attr => rowDetSet.has(attr))) {
-                    errors.push('ФЗ попадает внутрь существующей детерминанты!');
+                    errors.push('Добавляемая ФЗ попадает внутрь существующей детерминанты!');
                     determinant.classList.add('error');
                     break;
                 }
