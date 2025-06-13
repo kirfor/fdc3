@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка строковых последовательностей</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <form id="textForm" class="input-form">
+            <div class="input-row">
+                <input type="text" id="determinant" placeholder="Детерминанта (строки через запятую)" class="wide-input">
+                <input type="text" id="function" placeholder="Функция (строки через запятую)" class="wide-input">
+                <button type="submit" class="check-button">Добавить ФЗ</button>
+            </div>
+            <div id="error-message" class="error-message"></div>
+        </form>
+
+        <div id="results" class="results-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Детерминанта</th>
+                        <th>Функция</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <!-- Сюда будут добавляться результаты -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
