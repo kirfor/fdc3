@@ -74,32 +74,6 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         }
     }
     
-    // Проверка на функциональную зависимость внутри детерминанты (только если нет других ошибок)
-    if (errors.length === 0 && validationDet.strings.length > 1) {
-        const detSet = new Set(validationDet.strings);
-        
-        const rows = resultsBody.querySelectorAll('tr');
-        for (const row of rows) {
-            const cells = row.querySelectorAll('td');
-            const rowDet = cells[0].textContent.split(',').map(s => s.trim());
-            const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
-            
-            // Проверяем, что детерминанта существующей ФЗ полностью содержится в новой детерминанте
-            const allDetInNewDet = rowDet.every(attr => detSet.has(attr));
-            
-            if (allDetInNewDet) {
-                // Проверяем, что хотя бы один атрибут функции содержится в детерминанте
-                const anyFuncInNewDet = rowFunc.some(attr => detSet.has(attr));
-                
-                if (anyFuncInNewDet) {
-                    errors.push('Функциональная зависимость внутри детерминанты!');
-                    determinant.classList.add('error');
-                    break;
-                }
-            }
-        }
-    }
-    
     // Проверка на существующую ФЗ в таблице (только если нет других ошибок)
     if (errors.length === 0) {
         const detStr = validationDet.strings.sort().join(',');
@@ -116,6 +90,59 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
                 determinant.classList.add('error');
                 func.classList.add('error');
                 break;
+            }
+        }
+    }
+    
+    // Проверка на нарушение правил нормализации (только если нет других ошибок)
+    if (errors.length === 0) {
+        const newDetSet = new Set(validationDet.strings);
+        const newFuncSet = new Set(validationFunc.strings);
+        
+        // Проверка 1: Новая ФЗ не должна выводиться из существующих
+        const rows = resultsBody.querySelectorAll('tr');
+        for (const row of rows) {
+            const cells = row.querySelectorAll('td');
+            const rowDet = cells[0].textContent.split(',').map(s => s.trim());
+            const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
+            
+            const rowDetSet = new Set(rowDet);
+            
+            // Проверяем, что детерминанта существующей ФЗ содержится в новой детерминанте
+            const allRowDetInNewDet = rowDet.every(attr => newDetSet.has(attr));
+            
+            if (allRowDetInNewDet) {
+                // Проверяем, что функция существующей ФЗ не содержится в новой детерминанте
+                const anyRowFuncInNewDet = rowFunc.some(attr => newDetSet.has(attr));
+                
+                if (anyRowFuncInNewDet) {
+                    errors.push('Нарушение нормальной формы: функциональная зависимость внутри детерминанты!');
+                    determinant.classList.add('error');
+                    break;
+                }
+            }
+        }
+        
+        // Проверка 2: Существующие ФЗ не должны выводиться из новой
+        if (errors.length === 0) {
+            for (const row of rows) {
+                const cells = row.querySelectorAll('td');
+                const rowDet = cells[0].textContent.split(',').map(s => s.trim());
+                const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
+                
+                // Проверяем, что новая детерминанта содержит существующую
+                const allNewDetInRowDet = validationDet.strings.every(attr => rowDet.includes(attr));
+                
+                if (allNewDetInRowDet) {
+                    // Проверяем, что новая функция не содержится в существующей детерминанте
+                    const anyNewFuncInRowDet = validationFunc.strings.some(attr => rowDet.includes(attr));
+                    
+                    if (anyNewFuncInRowDet) {
+                        errors.push('Нарушение нормальной формы: существующая ФЗ выводится из новой!');
+                        determinant.classList.add('error');
+                        break;
+                    }
+                }
             }
         }
     }
