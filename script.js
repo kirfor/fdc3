@@ -101,7 +101,7 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         return;
     }
     
-    // Если все проверки пройдены - добавляем данные в таблицу
+    // Если все проверки пройдены - добавляем данные в таблицу (в начало)
     const row = document.createElement('tr');
     
     const detCell = document.createElement('td');
@@ -122,7 +122,12 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
     actionCell.appendChild(deleteBtn);
     row.appendChild(actionCell);
     
-    resultsBody.appendChild(row);
+    // Добавляем строку в начало таблицы
+    if (resultsBody.firstChild) {
+        resultsBody.insertBefore(row, resultsBody.firstChild);
+    } else {
+        resultsBody.appendChild(row);
+    }
     
     // Очищаем поля ввода
     determinant.value = '';
