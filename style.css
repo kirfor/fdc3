@@ -89,3 +89,23 @@ body {
     background-color: #f4f4f9;
     font-weight: bold;
 }
+
+.delete-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.delete-btn:hover {
+    background: #cc0000;
+}
+
+.results-table th:last-child,
+.results-table td:last-child {
+    width: 100px;
+    text-align: center;
+}
