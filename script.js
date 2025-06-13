@@ -127,11 +127,11 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
                 }
             }
             
-            // 3. Специальная проверка для вашего случая: если есть (1,2)->3, то 1->2 недопустима
+            // 3. Специальная проверка для вашего случая
             if (rowDet.length > validationDet.strings.length) {
                 if (validationDet.strings.every(attr => rowDetSet.has(attr)) && 
                     validationFunc.strings.some(attr => rowDetSet.has(attr))) {
-                    errors.push('Нарушение: существующая ФЗ делает новую избыточной!');
+                    errors.push('ФЗ попадает внутрь существующей детерминанты!');
                     determinant.classList.add('error');
                     break;
                 }
