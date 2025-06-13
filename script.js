@@ -64,31 +64,36 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         const detStrings = validationDet.strings;
         const funcStrings = validationFunc.strings;
         
-        // Проверка на функциональную зависимость внутри детерминанты
-        if (detStrings.length > 1) {
-            // Проверяем, есть ли в детерминанте атрибуты, которые функционально зависят друг от друга
-            const hasInternalDependency = resultsBody.querySelectorAll('tr').some(row => {
-                const cells = row.querySelectorAll('td');
-                const rowDet = cells[0].textContent.split(',').map(s => s.trim());
-                const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
-                
-                // Проверяем, содержится ли какая-то ФЗ полностью внутри текущей детерминанты
-                return rowDet.every(attr => detStrings.includes(attr)) && 
-                       rowFunc.some(attr => detStrings.includes(attr));
-            });
-            
-            if (hasInternalDependency) {
-                errors.push('Функциональная зависимость внутри детерминанты!');
-                determinant.classList.add('error');
-            }
-        }
-        
         // Проверка тривиальной зависимости между детерминантой и функцией
         for (const attr of funcStrings) {
             if (detStrings.includes(attr)) {
                 errors.push('Тривиальная функциональная зависимость!');
                 determinant.classList.add('error');
                 func.classList.add('error');
+                break;
+            }
+        }
+    }
+    
+    // Проверка на функциональную зависимость внутри детерминанты (только если нет других ошибок)
+    if (errors.length === 0 && validationDet.strings.length > 1) {
+        const detSet = new Set(validationDet.strings);
+        
+        const rows = resultsBody.querySelectorAll('tr');
+        for (const row of rows) {
+            const cells = row.querySelectorAll('td');
+            const rowDet = cells[0].textContent.split(',').map(s => s.trim());
+            const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
+            
+            // Проверяем, что все атрибуты существующей детерминанты содержатся в новой детерминанте
+            const allDetInNewDet = rowDet.every(attr => detSet.has(attr));
+            
+            // Проверяем, что хотя бы один атрибут существующей функции содержится в новой детерминанте
+            const anyFuncInNewDet = rowFunc.some(attr => detSet.has(attr));
+            
+            if (allDetInNewDet && anyFuncInNewDet) {
+                errors.push('Функциональная зависимость внутри детерминанты!');
+                determinant.classList.add('error');
                 break;
             }
         }
