@@ -92,9 +92,10 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         }
     }
     
-    // Проверка на нарушение нормальных форм
+    // Улучшенная проверка на нарушение нормальных форм
     if (errors.length === 0) {
         const newDetSet = new Set(validationDet.strings);
+        const newFuncSet = new Set(validationFunc.strings);
         
         const rows = resultsBody.querySelectorAll('.fz-row');
         for (const row of rows) {
@@ -102,13 +103,20 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             const rowDet = cells[0].textContent.split(',').map(s => s.trim());
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
             
-            // Проверка на вхождение существующей ФЗ в новую детерминанту
-            if (rowDet.every(attr => newDetSet.has(attr))) {
-                if (rowFunc.some(attr => newDetSet.has(attr))) {
-                    errors.push('Существующая ФЗ внутри новой детерминанты!');
-                    determinant.classList.add('error');
-                    break;
-                }
+            // 1. Проверка: если детерминанта новой ФЗ содержит существующую детерминанту
+            // и пересекается с существующей функцией
+            const existingDependsOnNew = rowDet.every(attr => newDetSet.has(attr)) && 
+                                      rowFunc.some(attr => newDetSet.has(attr));
+            
+            // 2. Проверка: если детерминанта существующей ФЗ содержит новую детерминанту
+            // и пересекается с новой функцией
+            const newDependsOnExisting = validationDet.strings.every(attr => rowDet.includes(attr)) && 
+                                      validationFunc.strings.some(attr => rowDet.includes(attr));
+            
+            if (existingDependsOnNew || newDependsOnExisting) {
+                errors.push('Нарушение: ФЗ пересекается с существующей детерминантой!');
+                determinant.classList.add('error');
+                break;
             }
         }
     }
