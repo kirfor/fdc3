@@ -15,13 +15,13 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
     // Функция валидации
     const validateSequence = (value, fieldName) => {
         if (!value.trim()) {
-            return { valid: false, message: `${fieldName}: Введите хотя бы одну строку!` };
+            return { valid: false, message: `${fieldName}: Введите хотя бы один атрибут!` };
         }
         
         const strings = value.split(',').map(s => s.trim()).filter(s => s !== '');
         
         if (strings.length > 1 && !/,/.test(value)) {
-            return { valid: false, message: `${fieldName}: Между строками должна быть хотя бы одна запятая!` };
+            return { valid: false, message: `${fieldName}: Разделяйте атрибуты запятыми!` };
         }
         
         const seen = {};
@@ -29,9 +29,7 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             if (seen[str]) {
                 return { 
                     valid: false, 
-                    message: fieldName === 'Детерминанта' 
-                        ? 'Детерминанта содержит повторяющиеся атрибуты!' 
-                        : 'Функция содержит повторяющиеся атрибуты!'
+                    message: `${fieldName}: Атрибут "${str}" повторяется!`
                 };
             }
             seen[str] = true;
@@ -39,11 +37,11 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         
         for (const str of strings) {
             if (/\s/.test(str)) {
-                return { valid: false, message: `${fieldName}: Строка "${str}" содержит пробелы!` };
+                return { valid: false, message: `${fieldName}: Атрибут "${str}" содержит пробелы!` };
             }
             
             if (str.length > 5) {
-                return { valid: false, message: `${fieldName}: Строка "${str}" слишком длинная (макс. 5 символов)!` };
+                return { valid: false, message: `${fieldName}: Атрибут "${str}" слишком длинный!` };
             }
         }
         
@@ -59,14 +57,14 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
     if (!validationDet.valid) errors.push(validationDet.message);
     if (!validationFunc.valid) errors.push(validationFunc.message);
     
-    // Проверка на тривиальную зависимость (только если нет других ошибок)
+    // Проверка на тривиальную зависимость
     if (errors.length === 0) {
         const detStrings = validationDet.strings;
         const funcStrings = validationFunc.strings;
         
         for (const attr of funcStrings) {
             if (detStrings.includes(attr)) {
-                errors.push('Тривиальная функциональная зависимость!');
+                errors.push('Тривиальная зависимость!');
                 determinant.classList.add('error');
                 func.classList.add('error');
                 break;
@@ -74,19 +72,19 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         }
     }
     
-    // Проверка на существующую ФЗ в таблице (только если нет других ошибок)
+    // Проверка на существующую ФЗ
     if (errors.length === 0) {
         const detStr = validationDet.strings.sort().join(',');
         const funcStr = validationFunc.strings.sort().join(',');
         
-        const rows = resultsBody.querySelectorAll('tr');
+        const rows = resultsBody.querySelectorAll('.fz-row');
         for (const row of rows) {
-            const cells = row.querySelectorAll('td');
+            const cells = row.querySelectorAll('div');
             const rowDet = cells[0].textContent.split(',').map(s => s.trim()).sort().join(',');
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim()).sort().join(',');
             
             if (rowDet === detStr && rowFunc === funcStr) {
-                errors.push('Такая ФЗ уже есть!');
+                errors.push('Такая ФЗ уже существует!');
                 determinant.classList.add('error');
                 func.classList.add('error');
                 break;
@@ -94,43 +92,20 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         }
     }
     
-    // Проверка на нарушение правил нормализации (только если нет других ошибок)
+    // Проверка на нарушение нормальных форм
     if (errors.length === 0) {
         const newDetSet = new Set(validationDet.strings);
-        const newFuncSet = new Set(validationFunc.strings);
         
-        const rows = resultsBody.querySelectorAll('tr');
+        const rows = resultsBody.querySelectorAll('.fz-row');
         for (const row of rows) {
-            const cells = row.querySelectorAll('td');
+            const cells = row.querySelectorAll('div');
             const rowDet = cells[0].textContent.split(',').map(s => s.trim());
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
             
-            const rowDetSet = new Set(rowDet);
-            const rowFuncSet = new Set(rowFunc);
-            
-            // 1. Проверка: если новая ФЗ может быть выведена из существующей
+            // Проверка на вхождение существующей ФЗ в новую детерминанту
             if (rowDet.every(attr => newDetSet.has(attr))) {
-                if (rowFunc.some(attr => newFuncSet.has(attr))) {
-                    errors.push('Новая ФЗ выводится из существующей!');
-                    determinant.classList.add('error');
-                    break;
-                }
-            }
-            
-            // 2. Проверка: если существующая ФЗ содержится в новой детерминанте
-            if (validationDet.strings.some(attr => rowDetSet.has(attr))) {
                 if (rowFunc.some(attr => newDetSet.has(attr))) {
-                    errors.push('Существующая ФЗ попадает внутрь детерминанты добавляемой ФЗ!');
-                    determinant.classList.add('error');
-                    break;
-                }
-            }
-            
-            // 3. Специальная проверка: если добавляемая ФЗ попадает внутрь существующей детерминанты
-            if (rowDet.length > validationDet.strings.length) {
-                if (validationDet.strings.every(attr => rowDetSet.has(attr)) && 
-                    validationFunc.strings.some(attr => rowDetSet.has(attr))) {
-                    errors.push('Добавляемая ФЗ попадает внутрь существующей детерминанты!');
+                    errors.push('Существующая ФЗ внутри новой детерминанты!');
                     determinant.classList.add('error');
                     break;
                 }
@@ -145,33 +120,31 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
         return;
     }
     
-    // Если все проверки пройдены - добавляем данные в таблицу (в начало)
-    const row = document.createElement('tr');
+    // Добавляем новую ФЗ
+    const row = document.createElement('div');
+    row.className = 'fz-row';
     
-    const detCell = document.createElement('td');
+    const detCell = document.createElement('div');
     detCell.textContent = validationDet.strings.join(', ');
     row.appendChild(detCell);
     
-    const funcCell = document.createElement('td');
+    const funcCell = document.createElement('div');
     funcCell.textContent = validationFunc.strings.join(', ');
     row.appendChild(funcCell);
     
-    const actionCell = document.createElement('td');
+    const actionCell = document.createElement('div');
     const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Удалить';
+    deleteBtn.textContent = '×';
     deleteBtn.className = 'delete-btn';
+    deleteBtn.title = 'Удалить';
     deleteBtn.addEventListener('click', function() {
-        resultsBody.removeChild(row);
+        row.remove();
     });
     actionCell.appendChild(deleteBtn);
     row.appendChild(actionCell);
     
-    // Добавляем строку в начало таблицы
-    if (resultsBody.firstChild) {
-        resultsBody.insertBefore(row, resultsBody.firstChild);
-    } else {
-        resultsBody.appendChild(row);
-    }
+    // Добавляем в начало таблицы
+    resultsBody.insertBefore(row, resultsBody.firstChild);
     
     // Очищаем поля ввода
     determinant.value = '';

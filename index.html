@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вывод замыкания системы функциональных зависимостей</title>
+    <title>Функциональные зависимости</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1 class="site-title">Вывод замыкания системы функциональных зависимостей</h1>
+        <h1 class="site-title">Функциональные зависимости</h1>
         
         <form id="textForm" class="input-form">
-            <div class="input-row">
-                <input type="text" id="determinant" placeholder="Детерминанта (строки через запятую)" class="wide-input">
-                <input type="text" id="function" placeholder="Функция (строки через запятую)" class="wide-input">
-                <button type="submit" class="check-button">Добавить ФЗ</button>
+            <div class="input-group">
+                <label for="determinant">Детерминанта:</label>
+                <input type="text" id="determinant" placeholder="атрибуты через запятую" class="wide-input">
             </div>
+            <div class="input-group">
+                <label for="function">Функция:</label>
+                <input type="text" id="function" placeholder="атрибуты через запятую" class="wide-input">
+            </div>
+            <button type="submit" class="check-button">Добавить ФЗ</button>
             <div id="error-message" class="error-message"></div>
         </form>
 
         <div id="results" class="results-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Детерминанта</th>
-                        <th>Функция</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody id="results-body">
-                    <!-- Сюда будут добавляться результаты -->
-                </tbody>
-            </table>
+            <div class="table-header">
+                <span>Детерминанта</span>
+                <span>Функция</span>
+                <span>Действия</span>
+            </div>
+            <div id="results-body" class="table-body">
+                <!-- Сюда будут добавляться результаты -->
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
