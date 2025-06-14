@@ -57,14 +57,15 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
     if (!validationDet.valid) errors.push(validationDet.message);
     if (!validationFunc.valid) errors.push(validationFunc.message);
     
-    // Проверка на тривиальную зависимость
+    // Проверка на тривиальную зависимость (восстановленная)
     if (errors.length === 0) {
         const detStrings = validationDet.strings;
         const funcStrings = validationFunc.strings;
         
-        for (const attr of funcStrings) {
-            if (detStrings.includes(attr)) {
-                errors.push('Тривиальная зависимость!');
+        // Проверяем каждый атрибут функции на наличие в детерминанте
+        for (const funcAttr of funcStrings) {
+            if (detStrings.includes(funcAttr)) {
+                errors.push(`Тривиальная зависимость: атрибут ${funcAttr} содержится в детерминанте!`);
                 determinant.classList.add('error');
                 func.classList.add('error');
                 break;
@@ -103,17 +104,20 @@ document.getElementById('textForm').addEventListener('submit', function(e) {
             const rowDet = cells[0].textContent.split(',').map(s => s.trim());
             const rowFunc = cells[1].textContent.split(',').map(s => s.trim());
             
-            // 1. Проверка: если детерминанта новой ФЗ содержит существующую детерминанту
-            // и пересекается с существующей функцией
-            const existingDependsOnNew = rowDet.every(attr => newDetSet.has(attr)) && 
-                                      rowFunc.some(attr => newDetSet.has(attr));
+            const rowDetSet = new Set(rowDet);
+            const rowFuncSet = new Set(rowFunc);
             
-            // 2. Проверка: если детерминанта существующей ФЗ содержит новую детерминанту
-            // и пересекается с новой функцией
-            const newDependsOnExisting = validationDet.strings.every(attr => rowDet.includes(attr)) && 
-                                      validationFunc.strings.some(attr => rowDet.includes(attr));
+            // 1. Проверка: если детерминанта существующей ФЗ содержится в новой детерминанте
+            // и функция существующей ФЗ пересекается с новой детерминантой
+            const existingInNew = rowDet.every(attr => newDetSet.has(attr)) && 
+                               rowFunc.some(attr => newDetSet.has(attr));
             
-            if (existingDependsOnNew || newDependsOnExisting) {
+            // 2. Проверка: если детерминанта новой ФЗ содержится в существующей детерминанте
+            // и функция новой ФЗ пересекается с существующей детерминантой
+            const newInExisting = validationDet.strings.every(attr => rowDetSet.has(attr)) && 
+                                validationFunc.strings.some(attr => rowDetSet.has(attr));
+            
+            if (existingInNew || newInExisting) {
                 errors.push('Нарушение: ФЗ пересекается с существующей детерминантой!');
                 determinant.classList.add('error');
                 break;
